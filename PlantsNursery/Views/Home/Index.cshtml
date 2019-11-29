@@ -1,0 +1,102 @@
+﻿@{
+    ViewBag.Title = "WaterMango";
+}
+
+@Scripts.Render("~/bundles/jquery")
+
+<br />
+<div class="plant-container row">    
+</div>
+
+<script type="text/javascript">
+
+
+    $(document).ready(function () {
+        fetchNewData(); // call to fetch data
+    });
+
+    function fetchNewData() {
+        $.ajax({
+            url: "Home/GetAllPlants",
+            type: "GET",
+            datatype: "application/json",
+            success: function (response) {
+                console.log(response);
+                $(".plant-container").html('');
+                for (var i = 0; i < response.length; i++) {
+                    var plantData = response[i];
+                    
+                    var wateringButtonText = "Start Watering";
+                    var driedPlantClass = "";
+                    if (plantData.State == "Watering" || plantData.State == "Flooded")
+                        wateringButtonText = "Stop Watering";
+
+                    if (plantData.State == "Dried")
+                        driedPlantClass = "dried-plant";
+
+                    var dateString = (new Date(parseInt(plantData.WateredLastTime.substr(6)))).toString();
+                    var remove_after = dateString.indexOf('G');
+                    var WateredLastTime = dateString.substring(0, remove_after);
+
+                    // html5 template literal holding html string for plant card
+                    var plantCardHtmlString = `<div class="col-md-4 ">
+                                                    <div class="card">
+                                                        <img src="/Content/images/plant.jpg" alt="Plant Image Missing" height="200">
+                                                        <h4>${plantData.Title}</h4>
+                                                        <p class="last-watered">Last Watered: <span class="last-watered-span">${WateredLastTime}</span></p>
+                                                        <div>
+                                                            <button class="btn-watering" onclick="startOrStopWatering(this, ${plantData.Id})">${wateringButtonText}</button>
+                                                            <div class="card-status ${driedPlantClass}">${plantData.State}</div>
+                                                        </div>
+                                                    </div>
+                                             </div>`;
+
+                    $(".plant-container").append(plantCardHtmlString);
+                }
+                
+                setTimeout(fetchNewData, 5000); // call to fetch data after 5 seconds
+            },
+            error: function (err) {
+                console.log(err);
+                alert(err);
+            }
+        });
+    }
+
+    function startOrStopWatering(buttonElement, plantId) {
+        var currentValue = $(buttonElement).text();
+        if (currentValue == "Start Watering") {
+            $.ajax({
+                url: "Home/StartWatering?plantId=" + plantId,
+                type: "GET",
+                datatype: "application/json",
+                success: function (response) {
+                    if (response == "success") {
+                        $(buttonElement).text("Stop Watering");
+                        fetchNewData();
+                    }
+                    else {
+                        alert(response);
+                    }
+                }
+            });
+        }
+        else {
+            $.ajax({
+                url: "Home/StopWatering?plantId=" + plantId,
+                type: "GET",
+                datatype: "application/json",
+                success: function (response) {
+                    if (response == "success") {
+                        $(buttonElement).text("Start Watering");
+                        fetchNewData();
+                    }
+                    else {
+                        alert(response);
+                    }
+                        
+                }
+            });
+        }
+    }
+</script>

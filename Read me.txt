@@ -1,0 +1,16 @@
+# How It works:
+
+- This Application has 5 plants.
+- Each plant has a Button to start/stop watering.
+- Besides the button, we have the status/state of the plant.
+- There are 4 state: Watering, Normal, Flooded and Dried.
+	- If someone is watering the plant, it is in Watering state.
+	- If plant has been fully watered in last 6 hours, it is in Normal state.
+	- If we don't stop watering even after 10 sec, it is in Flooded state.
+	- If plant has not been fully watered in last 6 hours, it is in Dried state.
+- After it is fully watered you can't start watering again within 30 seconds.
+
+# How to launch the website
+	- open the solution file(*.sln) in visual studio 
+	- Rebuild solution
+	- Press F5 or start debugging button
