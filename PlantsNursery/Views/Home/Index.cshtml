@@ -12,17 +12,17 @@
 
 
     $(document).ready(function () {
-        fetchNewData(); // call to fetch data
+        fetchNewData(true); // call to fetch data
     });
 
-    function fetchNewData() {
+    function fetchNewData(callRecursively) {
         $.ajax({
             url: "Home/GetAllPlants",
             type: "GET",
             datatype: "application/json",
             success: function (response) {
                 console.log(response);
-                $(".plant-container").html('');
+                var firstTimeLoading = $(".plant-container").html().trim() == '';
                 for (var i = 0; i < response.length; i++) {
                     var plantData = response[i];
                     
@@ -38,23 +38,42 @@
                     var remove_after = dateString.indexOf('G');
                     var WateredLastTime = dateString.substring(0, remove_after);
 
-                    // html5 template literal holding html string for plant card
-                    var plantCardHtmlString = `<div class="col-md-4 ">
+                    if (firstTimeLoading) {
+                        // html5 template literal holding html string for plant card
+                        var plantCardHtmlString = `<div class="col-md-4 ">
                                                     <div class="card">
                                                         <img src="/Content/images/plant.jpg" alt="Plant Image Missing" height="200">
                                                         <h4>${plantData.Title}</h4>
                                                         <p class="last-watered">Last Watered: <span class="last-watered-span">${WateredLastTime}</span></p>
                                                         <div>
                                                             <button class="btn-watering" onclick="startOrStopWatering(this, ${plantData.Id})">${wateringButtonText}</button>
-                                                            <div class="card-status ${driedPlantClass}">${plantData.State}</div>
+                                                            <div class="card-status card-status-span-${plantData.Id} ${driedPlantClass}">${plantData.State}</div>
                                                         </div>
                                                     </div>
                                              </div>`;
 
-                    $(".plant-container").append(plantCardHtmlString);
+                        $(".plant-container").append(plantCardHtmlString);
+                    }
+                    else {
+
+                        $(".title-" + plantData.Id).html(plantData.Title);
+                        $(".last-watered-span-" + plantData.Id).html(WateredLastTime);
+                        $(".btn-watering-" + plantData.Id).html(wateringButtonText);
+                        $(".card-status-span-" + plantData.Id).html(plantData.State);
+                        if (driedPlantClass)
+                            $(".card-status-span-" + plantData.Id).addClass(driedPlantClass);
+                        else
+                            $(".card-status-span-" + plantData.Id).removeClass("dried-plant");
+
+
+
+                    }
                 }
                 
-                setTimeout(fetchNewData, 5000); // call to fetch data after 5 seconds
+                if (callRecursively)
+                    setTimeout(function () {
+                        fetchNewData(true);
+                    }, 5000); // call to fetch data after 5 seconds
             },
             error: function (err) {
                 console.log(err);
@@ -73,7 +92,7 @@
                 success: function (response) {
                     if (response == "success") {
                         $(buttonElement).text("Stop Watering");
-                        fetchNewData();
+                        fetchNewData(false);
                     }
                     else {
                         alert(response);
@@ -89,7 +108,7 @@
                 success: function (response) {
                     if (response == "success") {
                         $(buttonElement).text("Start Watering");
-                        fetchNewData();
+                        fetchNewData(false);
                     }
                     else {
                         alert(response);
